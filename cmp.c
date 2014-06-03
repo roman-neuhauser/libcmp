@@ -57,18 +57,15 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/cmp.c 216370 2010-12-11 08:32:16Z
 
 #include "extern.h"
 
-int lflag, sflag, xflag, zflag;
+int lflag, oflag, sflag, xflag, zflag;
 
 static void usage(void);
+static void compare(int, char**);
 
 int
 main(int argc, char *argv[])
 {
-  struct stat sb1, sb2;
-  off_t skip1, skip2;
-  int ch, fd1, fd2, oflag, special;
-  const char *file1, *file2;
-
+  int ch;
   oflag = O_RDONLY;
   while ((ch = getopt(argc, argv, "hlsxz")) != -1)
     switch (ch) {
@@ -101,6 +98,17 @@ main(int argc, char *argv[])
 
   if (argc < 2 || argc > 4)
     usage();
+
+  compare(argc, argv);
+}
+
+static void
+compare(int argc, char *argv[])
+{
+  struct stat sb1, sb2;
+  off_t skip1, skip2;
+  int fd1, fd2, special;
+  const char *file1, *file2;
 
   /* Backward compatibility -- handle "-" meaning stdin. */
   special = 0;
