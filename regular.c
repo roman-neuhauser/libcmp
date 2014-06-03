@@ -34,7 +34,9 @@ static char sccsid[] = "@(#)regular.c	8.3 (Berkeley) 4/2/94";
 #endif
 
 #include <sys/cdefs.h>
+#if !defined(LIBCMP)
 __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/regular.c 223376 2011-06-21 20:44:06Z delphij $");
+#endif
 
 #include <sys/param.h>
 #include <sys/mman.h>
@@ -164,7 +166,7 @@ remmap(u_char *mem, int fd, off_t offset)
 }
 
 static void
-segv_handler(int sig __unused) {
+segv_handler(int sig __attribute__((__unused__))) {
 	static const char msg[] = "cmp: Input/output error (caught SIGSEGV)\n";
 
 	write(STDERR_FILENO, msg, sizeof(msg));

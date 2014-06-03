@@ -34,7 +34,9 @@ static char sccsid[] = "@(#)special.c	8.3 (Berkeley) 4/2/94";
 #endif
 
 #include <sys/cdefs.h>
+#if !defined(LIBCMP)
 __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/special.c 223376 2011-06-21 20:44:06Z delphij $");
+#endif
 
 #include <sys/types.h>
 

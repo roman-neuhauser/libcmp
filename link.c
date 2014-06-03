@@ -25,7 +25,9 @@
  */
 
 #include <sys/cdefs.h>
+#if !defined(LIBCMP)
 __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/link.c 149388 2005-08-23 13:13:13Z brian $");
+#endif
 
 #include <sys/types.h>
 #include <err.h>
