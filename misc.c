@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 1991, 1993, 1994
- *	The Regents of the University of California.  All rights reserved.
+ *  The Regents of the University of California.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,7 +29,7 @@
 
 #if 0
 #ifndef lint
-static char sccsid[] = "@(#)misc.c	8.3 (Berkeley) 4/2/94";
+static char sccsid[] = "@(#)misc.c  8.3 (Berkeley) 4/2/94";
 #endif
 #endif
 
@@ -49,16 +49,16 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/misc.c 216370 2010-12-11 08:32:16
 void
 eofmsg(const char *file)
 {
-	if (!sflag)
-		warnx("EOF on %s", file);
-	exit(DIFF_EXIT);
+  if (!sflag)
+    warnx("EOF on %s", file);
+  exit(DIFF_EXIT);
 }
 
 void
 diffmsg(const char *file1, const char *file2, off_t byte, off_t line)
 {
-	if (!sflag)
-		(void)printf("%s %s differ: char %lld, line %lld\n",
-		    file1, file2, (long long)byte, (long long)line);
-	exit(DIFF_EXIT);
+  if (!sflag)
+    (void)printf("%s %s differ: char %lld, line %lld\n",
+        file1, file2, (long long)byte, (long long)line);
+  exit(DIFF_EXIT);
 }
