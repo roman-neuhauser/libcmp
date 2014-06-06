@@ -28,12 +28,7 @@
 
   $ cmp -z f1 f2 1 1
 
-BUG: size(f1) - 1 == size(f2) - 4, and the contents
-BUG: of the tails are the same: this should succeed!
-
   $ cmp -z f1 f3 1 4
-  f1 f3 differ: size
-  [1]
 
   $ cmp -z f1 l1
 

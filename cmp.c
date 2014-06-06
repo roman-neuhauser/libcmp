@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 	if (special)
 		c_special(fd1, file1, skip1, fd2, file2, skip2);
 	else {
-		if (zflag && sb1.st_size != sb2.st_size) {
+		if (zflag && sb1.st_size - skip1 != sb2.st_size - skip2) {
 			if (!sflag)
 				(void) printf("%s %s differ: size\n",
 				    file1, file2);
