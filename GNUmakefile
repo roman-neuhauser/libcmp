@@ -1,3 +1,4 @@
+CFLAGS += -Wall -Wextra -pedantic -Wno-long-long -Wfatal-errors
 CPPFLAGS += -DLIBCMP
 CRAM_OPTIONS =
 
