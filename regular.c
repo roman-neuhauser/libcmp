@@ -59,7 +59,7 @@ static void segv_handler(int);
 
 #define CMP_TAILLEN(fi) ((fi)->st->st_size - (fi)->skip)
 
-void
+int
 c_regular(struct finfo *f0, struct finfo *f1)
 {
   u_char ch, *p1, *p2, *m1, *m2, *e1, *e2;
@@ -82,18 +82,18 @@ c_regular(struct finfo *f0, struct finfo *f1)
     if (!sflag)
       (void) printf("%s %s differ: size\n",
           f0->path, f1->path);
-    exit(DIFF_EXIT);
+    return DIFF_EXIT;
   }
 
   if (skip1 > len1)
-    eofmsg(file1);
+    return eofmsg(file1);
   len1 -= skip1;
   if (skip2 > len2)
-    eofmsg(file2);
+    return eofmsg(file2);
   len2 -= skip2;
 
   if (sflag && len1 != len2)
-    exit(DIFF_EXIT);
+    return DIFF_EXIT;
 
   sigemptyset(&act.sa_mask);
   act.sa_flags = SA_NODEFER;
@@ -109,14 +109,12 @@ c_regular(struct finfo *f0, struct finfo *f1)
   length = MIN(len1, len2);
 
   if ((m1 = remmap(NULL, fd1, off1)) == NULL) {
-    c_special(f0, f1);
-    return;
+    return c_special(f0, f1);
   }
 
   if ((m2 = remmap(NULL, fd2, off2)) == NULL) {
     munmap(m1, MMAP_CHUNK);
-    c_special(f0, f1);
-    return;
+    return c_special(f0, f1);
   }
 
   dfound = 0;
@@ -136,8 +134,7 @@ c_regular(struct finfo *f0, struct finfo *f1)
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        diffmsg(file1, file2, byte, line);
-        /* NOTREACHED */
+        return diffmsg(file1, file2, byte, line);
     }
     if (ch == '\n')
       ++line;
@@ -165,9 +162,10 @@ c_regular(struct finfo *f0, struct finfo *f1)
     err(ERR_EXIT, "sigaction()");
 
   if (len1 != len2)
-    eofmsg (len1 > len2 ? file2 : file1);
+    return eofmsg (len1 > len2 ? file2 : file1);
   if (dfound)
-    exit(DIFF_EXIT);
+    return DIFF_EXIT;
+  return OK_EXIT;
 }
 
 static u_char *

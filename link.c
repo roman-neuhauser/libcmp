@@ -38,7 +38,7 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/link.c 149388 2005-08-23 13:13:13
 
 #include "extern.h"
 
-void
+int
 c_link(struct finfo *f0, struct finfo *f1)
 {
   char buf1[PATH_MAX], *p1;
@@ -56,14 +56,14 @@ c_link(struct finfo *f0, struct finfo *f1)
     if (!sflag)
       err(ERR_EXIT, "%s", file1);
     else
-      exit(ERR_EXIT);
+      return ERR_EXIT;
   }
 
   if ((len2 = readlink(file2, buf2, sizeof(buf2) - 1)) < 0) {
     if (!sflag)
       err(ERR_EXIT, "%s", file2);
     else
-      exit(ERR_EXIT);
+      return ERR_EXIT;
   }
 
   if (skip1 > len1)
@@ -87,14 +87,14 @@ c_link(struct finfo *f0, struct finfo *f1)
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        diffmsg(file1, file2, byte, 1);
-        /* NOTREACHED */
+        return diffmsg(file1, file2, byte, 1);
     }
     byte++;
   }
 
   if (*p1 || *p2)
-    eofmsg (*p1 ? file2 : file1);
+    return eofmsg (*p1 ? file2 : file1);
   if (dfound)
-    exit(DIFF_EXIT);
+    return DIFF_EXIT;
+  return OK_EXIT;
 }

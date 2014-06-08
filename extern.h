@@ -51,10 +51,10 @@ struct finfo
   off_t skip;
 };
 
-void	c_link(struct finfo *, struct finfo *);
-void	c_regular(struct finfo *, struct finfo *);
-void	c_special(struct finfo *, struct finfo *);
-void	diffmsg(const char *, const char *, off_t, off_t);
-void	eofmsg(const char *);
+int	c_link(struct finfo *, struct finfo *);
+int	c_regular(struct finfo *, struct finfo *);
+int	c_special(struct finfo *, struct finfo *);
+int	diffmsg(const char *, const char *, off_t, off_t);
+int	eofmsg(const char *);
 
 extern int lflag, sflag, xflag, zflag;

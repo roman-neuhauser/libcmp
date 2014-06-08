@@ -59,8 +59,8 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/cmp.c 216370 2010-12-11 08:32:16Z
 
 int lflag, oflag, sflag, xflag, zflag;
 
-static void usage(void);
-static void compare(int, char**);
+static int usage(void);
+static int compare(int, char**);
 
 int
 main(int argc, char *argv[])
@@ -88,7 +88,7 @@ main(int argc, char *argv[])
       break;
     case '?':
     default:
-      usage();
+      return usage();
     }
   argv += optind;
   argc -= optind;
@@ -97,9 +97,9 @@ main(int argc, char *argv[])
     errx(ERR_EXIT, "specifying -s with -l or -x is not permitted");
 
   if (argc < 2 || argc > 4)
-    usage();
+    return usage();
 
-  compare(argc, argv);
+  return compare(argc, argv);
 }
 
 static struct finfo*
@@ -163,7 +163,7 @@ cmp_close(struct finfo *fi)
 #define CMP_S_ISLNK(fi) S_ISLNK(fi->st->st_mode)
 #define CMP_S_ISREG(fi) S_ISREG(fi->st->st_mode)
 
-static void
+static int
 compare(int argc, char *argv[])
 {
   struct finfo *fi, *f0, *f1, *fs[2] = { NULL, NULL };
@@ -176,7 +176,7 @@ compare(int argc, char *argv[])
       err(ERR_EXIT, "%s", argv[i]);
     if (!fi->st) {
       if (sflag)
-        exit(ERR_EXIT);
+        return ERR_EXIT;
       else
         err(ERR_EXIT, "%s", fi->path);
     }
@@ -190,30 +190,25 @@ compare(int argc, char *argv[])
   for (i = 0; i < 2; ++i) {
     if (CMP_S_ISLNK(fs[i^0]) && !CMP_S_ISLNK(fs[i^1])) {
       if (sflag)
-        exit(ERR_EXIT);
+        return ERR_EXIT;
       else
         errx(ERR_EXIT, "%s: Not a symbolic link", fs[i^1]->path);
     }
   }
 
-  if (CMP_S_ISLNK(f0) && CMP_S_ISLNK(f1)) {
-    c_link(f0, f1);
-    exit(0);
-  }
-
+  if (CMP_S_ISLNK(f0) && CMP_S_ISLNK(f1))
+    return c_link(f0, f1);
   if (!f0->fd || !f1->fd || !CMP_S_ISREG(f0) || !CMP_S_ISREG(f1))
-    c_special(f0, f1);
-  else {
-    c_regular(f0, f1);
-  }
-  exit(0);
+    return c_special(f0, f1);
+  else
+    return c_regular(f0, f1);
 }
 
-static void
+static int
 usage(void)
 {
 
   (void)fprintf(stderr,
       "usage: cmp [-l | -s | -x] [-hz] file1 file2 [skip1 [skip2]]\n");
-  exit(ERR_EXIT);
+  return ERR_EXIT;
 }

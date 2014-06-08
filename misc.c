@@ -46,19 +46,19 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/misc.c 216370 2010-12-11 08:32:16
 
 #include "extern.h"
 
-void
+int
 eofmsg(const char *file)
 {
   if (!sflag)
     warnx("EOF on %s", file);
-  exit(DIFF_EXIT);
+  return DIFF_EXIT;
 }
 
-void
+int
 diffmsg(const char *file1, const char *file2, off_t byte, off_t line)
 {
   if (!sflag)
     (void)printf("%s %s differ: char %lld, line %lld\n",
         file1, file2, (long long)byte, (long long)line);
-  exit(DIFF_EXIT);
+  return DIFF_EXIT;
 }
