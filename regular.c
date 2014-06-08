@@ -57,9 +57,10 @@ static void segv_handler(int);
 
 #define ROUNDPAGE(i) ((i) & ~pagemask)
 
+#define CMP_TAILLEN(fi) ((fi)->st->st_size - (fi)->skip)
+
 void
-c_regular(int fd1, const char *file1, off_t skip1, off_t len1,
-    int fd2, const char *file2, off_t skip2, off_t len2)
+c_regular(struct finfo *f0, struct finfo *f1)
 {
   u_char ch, *p1, *p2, *m1, *m2, *e1, *e2;
   off_t byte, length, line;
@@ -67,6 +68,22 @@ c_regular(int fd1, const char *file1, off_t skip1, off_t len1,
   off_t pagemask, off1, off2;
   size_t pagesize;
   struct sigaction act, oact;
+
+  int fd1 = f0->fd;
+  int fd2 = f1->fd;
+  const char *file1 = f0->path;
+  const char *file2 = f1->path;
+  off_t skip1 = f0->skip;
+  off_t skip2 = f1->skip;
+  off_t len1 = f0->st->st_size;
+  off_t len2 = f1->st->st_size;
+
+  if (zflag && CMP_TAILLEN(f0) != CMP_TAILLEN(f1)) {
+    if (!sflag)
+      (void) printf("%s %s differ: size\n",
+          f0->path, f1->path);
+    exit(DIFF_EXIT);
+  }
 
   if (skip1 > len1)
     eofmsg(file1);
@@ -92,13 +109,13 @@ c_regular(int fd1, const char *file1, off_t skip1, off_t len1,
   length = MIN(len1, len2);
 
   if ((m1 = remmap(NULL, fd1, off1)) == NULL) {
-    c_special(fd1, file1, skip1, fd2, file2, skip2);
+    c_special(f0, f1);
     return;
   }
 
   if ((m2 = remmap(NULL, fd2, off2)) == NULL) {
     munmap(m1, MMAP_CHUNK);
-    c_special(fd1, file1, skip1, fd2, file2, skip2);
+    c_special(f0, f1);
     return;
   }
 

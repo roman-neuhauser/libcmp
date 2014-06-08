@@ -102,15 +102,6 @@ main(int argc, char *argv[])
   compare(argc, argv);
 }
 
-struct finfo
-{
-  char const *path;
-  struct stat *st;
-  int fd;
-  int error;
-  off_t skip;
-};
-
 static struct finfo*
 cmp_open(char const *path, char const *skip)
 {
@@ -206,21 +197,14 @@ compare(int argc, char *argv[])
   }
 
   if (CMP_S_ISLNK(f0) && CMP_S_ISLNK(f1)) {
-    c_link(f0->path, f0->skip, f1->path, f1->skip);
+    c_link(f0, f1);
     exit(0);
   }
 
   if (!f0->fd || !f1->fd || !CMP_S_ISREG(f0) || !CMP_S_ISREG(f1))
-    c_special(f0->fd, f0->path, f0->skip, f1->fd, f1->path, f1->skip);
+    c_special(f0, f1);
   else {
-    if (zflag && f0->st->st_size - f0->skip != f1->st->st_size - f1->skip) {
-      if (!sflag)
-        (void) printf("%s %s differ: size\n",
-            f0->path, f1->path);
-      exit(DIFF_EXIT);
-    }
-    c_regular(f0->fd, f0->path, f0->skip, f0->st->st_size,
-        f1->fd, f1->path, f1->skip, f1->st->st_size);
+    c_regular(f0, f1);
   }
   exit(0);
 }

@@ -39,13 +39,18 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/link.c 149388 2005-08-23 13:13:13
 #include "extern.h"
 
 void
-c_link(const char *file1, off_t skip1, const char *file2, off_t skip2)
+c_link(struct finfo *f0, struct finfo *f1)
 {
   char buf1[PATH_MAX], *p1;
   char buf2[PATH_MAX], *p2;
   int dfound, len1, len2;
   off_t byte;
   u_char ch;
+
+  const char *file1 = f0->path;
+  const char *file2 = f1->path;
+  off_t skip1 = f0->skip;
+  off_t skip2 = f1->skip;
 
   if ((len1 = readlink(file1, buf1, sizeof(buf1) - 1)) < 0) {
     if (!sflag)

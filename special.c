@@ -47,13 +47,19 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/special.c 223376 2011-06-21 20:44
 #include "extern.h"
 
 void
-c_special(int fd1, const char *file1, off_t skip1,
-    int fd2, const char *file2, off_t skip2)
+c_special(struct finfo *f0, struct finfo *f1)
 {
   int ch1, ch2;
   off_t byte, line;
   FILE *fp1, *fp2;
   int dfound;
+
+  const char *file1 = f0->path;
+  const char *file2 = f1->path;
+  int fd1 = f0->fd;
+  int fd2 = f1->fd;
+  off_t skip1 = f0->skip;
+  off_t skip2 = f1->skip;
 
   if ((fp1 = fdopen(fd1, "r")) == NULL)
     err(ERR_EXIT, "%s", file1);
