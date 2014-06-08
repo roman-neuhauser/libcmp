@@ -109,7 +109,7 @@ main(int argc, char *argv[])
 		fd1 = 0;
 		file1 = "stdin";
 	}
-	else if ((fd1 = open(file1, oflag, 0)) < 0 && errno != EMLINK) {
+	else if ((fd1 = open(file1, oflag, 0)) < 0 && errno != CMP_O_NOFOLLOW_ERRNO) {
 		if (!sflag)
 			err(ERR_EXIT, "%s", file1);
 		else
@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 		fd2 = 0;
 		file2 = "stdin";
 	}
-	else if ((fd2 = open(file2, oflag, 0)) < 0 && errno != EMLINK) {
+	else if ((fd2 = open(file2, oflag, 0)) < 0 && errno != CMP_O_NOFOLLOW_ERRNO) {
 		if (!sflag)
 			err(ERR_EXIT, "%s", file2);
 		else

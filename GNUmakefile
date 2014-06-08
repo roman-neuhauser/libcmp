@@ -1,6 +1,10 @@
 CPPFLAGS += -DLIBCMP
 CRAM_OPTIONS =
 
+ifneq (,$(findstring BSD,$(shell uname -s)))
+CPPFLAGS +=       -DOPEN_EMLINK
+endif
+
 .PHONY: all
 all: cmp
 

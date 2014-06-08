@@ -36,6 +36,12 @@
 #define DIFF_EXIT	1
 #define ERR_EXIT	2	/* error exit code */
 
+#if defined(OPEN_EMLINK)
+# define CMP_O_NOFOLLOW_ERRNO EMLINK
+#else
+# define CMP_O_NOFOLLOW_ERRNO ELOOP
+#endif
+
 void	c_link(const char *, off_t, const char *, off_t);
 void	c_regular(int, const char *, off_t, off_t, int, const char *, off_t, off_t);
 void	c_special(int, const char *, off_t, int, const char *, off_t);
