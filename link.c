@@ -94,7 +94,5 @@ c_link(struct finfo *f0, struct finfo *f1)
 
   if (*p1 || *p2)
     return eofmsg (*p1 ? file2 : file1);
-  if (dfound)
-    return DIFF_EXIT;
-  return OK_EXIT;
+  return dfound ? DIFF_EXIT : OK_EXIT;
 }
