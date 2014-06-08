@@ -102,92 +102,125 @@ main(int argc, char *argv[])
   compare(argc, argv);
 }
 
+struct finfo
+{
+  char const *path;
+  struct stat *st;
+  int fd;
+  int error;
+  off_t skip;
+};
+
+static struct finfo*
+cmp_open(char const *path, char const *skip)
+{
+  struct finfo *fi;
+  struct stat *st;
+  int is_stdin;
+
+  fi = malloc(sizeof(struct finfo));
+  if (!fi) return NULL;
+  st = malloc(sizeof(struct stat));
+  if (!st) {
+    goto cmp_open_failure;
+  }
+
+  is_stdin = !strcmp(path, "-");
+  fi->path = is_stdin ? "stdin" : path;
+  fi->skip = strtol(skip, NULL, 0);
+  fi->fd = is_stdin ? 0 : open(fi->path, oflag);
+
+  if (fi->fd > -1) {
+    if (fstat(fi->fd, st)) {
+      goto cmp_open_failure;
+    }
+  } else {
+    if (!(oflag & O_NOFOLLOW)) {
+      goto cmp_open_failure;
+    }
+    if (errno != CMP_O_NOFOLLOW_ERRNO) {
+      goto cmp_open_failure;
+    }
+    if (lstat(fi->path, st)) {
+      goto cmp_open_failure;
+    }
+  }
+
+  fi->error = 0;
+  fi->st = st;
+  return fi;
+
+cmp_open_failure:
+
+  fi->error = errno;
+  fi->st = NULL;
+  return fi;
+}
+
+static int
+cmp_close(struct finfo *fi)
+{
+  int fd = fi->fd, rv = 0;
+  if (fi->st)
+    free(fi->st);
+  free(fi);
+  if (fd > -1)
+    rv = close(fd);
+  return rv;
+}
+
+#define CMP_S_ISLNK(fi) S_ISLNK(fi->st->st_mode)
+#define CMP_S_ISREG(fi) S_ISREG(fi->st->st_mode)
+
 static void
 compare(int argc, char *argv[])
 {
-  struct stat sb1, sb2;
-  off_t skip1, skip2;
-  int fd1, fd2, special;
-  const char *file1, *file2;
+  struct finfo *fi, *f0, *f1, *fs[2] = { NULL, NULL };
+  int i;
 
-  /* Backward compatibility -- handle "-" meaning stdin. */
-  special = 0;
-  if (strcmp(file1 = argv[0], "-") == 0) {
-    special = 1;
-    fd1 = 0;
-    file1 = "stdin";
-  }
-  else if ((fd1 = open(file1, oflag, 0)) < 0 && errno != CMP_O_NOFOLLOW_ERRNO) {
-    if (!sflag)
-      err(ERR_EXIT, "%s", file1);
-    else
-      exit(ERR_EXIT);
-  }
-  if (strcmp(file2 = argv[1], "-") == 0) {
-    if (special)
-      errx(ERR_EXIT,
-        "standard input may only be specified once");
-    special = 1;
-    fd2 = 0;
-    file2 = "stdin";
-  }
-  else if ((fd2 = open(file2, oflag, 0)) < 0 && errno != CMP_O_NOFOLLOW_ERRNO) {
-    if (!sflag)
-      err(ERR_EXIT, "%s", file2);
-    else
-      exit(ERR_EXIT);
-  }
+  for (i = 0; i < 2; ++i) {
+    fi = fs[i] = cmp_open(argv[i], argc > (i+2) ? argv[i+2] : "0");
 
-  skip1 = argc > 2 ? strtol(argv[2], NULL, 0) : 0;
-  skip2 = argc == 4 ? strtol(argv[3], NULL, 0) : 0;
-
-  if (fd1 == -1) {
-    if (fd2 == -1) {
-      c_link(file1, skip1, file2, skip2);
-      exit(0);
-    } else if (!sflag)
-      errx(ERR_EXIT, "%s: Not a symbolic link", file2);
-    else
-      exit(ERR_EXIT);
-  } else if (fd2 == -1) {
-    if (!sflag)
-      errx(ERR_EXIT, "%s: Not a symbolic link", file1);
-    else
-      exit(ERR_EXIT);
-  }
-
-  if (!special) {
-    if (fstat(fd1, &sb1)) {
-      if (!sflag)
-        err(ERR_EXIT, "%s", file1);
-      else
+    if (!fi)
+      err(ERR_EXIT, "%s", argv[i]);
+    if (!fi->st) {
+      if (sflag)
         exit(ERR_EXIT);
-    }
-    if (!S_ISREG(sb1.st_mode))
-      special = 1;
-    else {
-      if (fstat(fd2, &sb2)) {
-        if (!sflag)
-          err(ERR_EXIT, "%s", file2);
-        else
-          exit(ERR_EXIT);
-      }
-      if (!S_ISREG(sb2.st_mode))
-        special = 1;
+      else
+        err(ERR_EXIT, "%s", fi->path);
     }
   }
 
-  if (special)
-    c_special(fd1, file1, skip1, fd2, file2, skip2);
+  f0 = fs[0]; f1 = fs[1];
+
+  if (f0->fd == 0 && f1->fd == 0)
+    errx(ERR_EXIT, "standard input may only be specified once");
+
+  for (i = 0; i < 2; ++i) {
+    if (CMP_S_ISLNK(fs[i^0]) && !CMP_S_ISLNK(fs[i^1])) {
+      if (sflag)
+        exit(ERR_EXIT);
+      else
+        errx(ERR_EXIT, "%s: Not a symbolic link", fs[i^1]->path);
+    }
+  }
+
+  if (CMP_S_ISLNK(f0) && CMP_S_ISLNK(f1)) {
+    c_link(f0->path, f0->skip, f1->path, f1->skip);
+    exit(0);
+  }
+
+  if (!f0->fd || !f1->fd || !CMP_S_ISREG(f0) || !CMP_S_ISREG(f1))
+    c_special(f0->fd, f0->path, f0->skip, f1->fd, f1->path, f1->skip);
   else {
-    if (zflag && sb1.st_size - skip1 != sb2.st_size - skip2) {
+    if (zflag && f0->st->st_size - f0->skip != f1->st->st_size - f1->skip) {
       if (!sflag)
         (void) printf("%s %s differ: size\n",
-            file1, file2);
+            f0->path, f1->path);
       exit(DIFF_EXIT);
     }
-    c_regular(fd1, file1, skip1, sb1.st_size,
-        fd2, file2, skip2, sb2.st_size);
+    c_regular(f0->fd, f0->path, f0->skip, f0->st->st_size,
+        f1->fd, f1->path, f1->skip, f1->st->st_size);
   }
   exit(0);
 }
