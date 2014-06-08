@@ -1,0 +1,51 @@
+.. vim: ft=rst sts=2 sw=2 tw=75
+
+###########################################################################
+                                  libcmp
+###########################################################################
+===========================================================================
+                             Librarized cmp(1)
+===========================================================================
+
+.. This file is marked up using reStructuredText.
+   Lines beginning with ".." are reST directives.
+   "foo_" or "`foo bar`_" is a link, defined at ".. _foo" or
+   ".. _foo bar".
+   "::" introduces a literal block (usually some form of code).
+   "`foo`" is some kind of identifier.
+   Suspicious backslashes in the text ("`std::string`\s") are required
+   for reST to recognize the preceding character as syntax, or the
+   following character as *not* syntax (\*.spec).
+
+.. default-role:: strong
+
+Introduction
+============
+
+`libcmp` will be a fast, thread-safe, reasonably portable, `BSD`_-
+`licensed`_ library for file comparisons, suitable as a backend for all
+functionality of *cmp(1)* in `FreeBSD`_ 10.0 and `GNU diffutils 3.3`_
+or later.  `/base/release/10.0.0/usr.bin/cmp`_ from FreeBSD was used as
+the starting point.
+
+The FreeBSD code is horrible spaghetti [1]_ but at least provides a frame
+of reference.  The original code is also slower (2x) than diffutils 3.3,
+at least on Linux 3.14 with glibc 2.19.  As the real goal of this project
+is to provide an implementation for a builtin *cmp(1)* in `Zsh`_ which has
+a BSD-like license, the GNU implementation is out of question, and it's not
+library-grade code either anyway.  Global variables, *exit(3)*, *xmalloc*,
+*errx(3)*: you name it, they have it.
+
+BTW, `cmp -s` is slower than `diff -q` (both diffutils 3.3), which i find
+funny in a sad way, though it's understandable given the code structure.
+
+.. [1] Actually, it's too straightforward.  Bogged down in minutiae,
+    laborious to extend (correctly).
+
+.. _`BSD`: http://opensource.org/licenses/BSD-2-Clause
+.. _`licensed`: LICENSE
+.. _`FreeBSD`: https://www.freebsd.org/
+.. _`GNU diffutils 3.3`: https://www.gnu.org/software/diffutils/
+.. _`/base/release/10.0.0/usr.bin/cmp`:
+      https://svnweb.freebsd.org/base/release/10.0.0/usr.bin/cmp/
+.. _`Zsh`: http://www.zsh.org/
