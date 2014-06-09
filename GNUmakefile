@@ -2,10 +2,6 @@ CFLAGS +=         -Wall -Wextra -pedantic -Wno-long-long -Wfatal-errors
 CPPFLAGS +=       -DLIBCMP
 CRAM_OPTIONS =
 
-ifneq (,$(findstring BSD,$(shell uname -s)))
-CPPFLAGS +=       -DOPEN_EMLINK
-endif
-
 GZIPCMD ?=        gzip
 RST2HTML ?=       $(call first_in_path,rst2html.py rst2html)
 

@@ -57,7 +57,7 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/cmp.c 216370 2010-12-11 08:32:16Z
 
 #include "extern.h"
 
-int lflag, oflag, sflag, xflag, zflag;
+int hflag, lflag, sflag, xflag, zflag;
 
 static int usage(void);
 static int compare(int, char**);
@@ -66,11 +66,10 @@ int
 main(int argc, char *argv[])
 {
   int ch;
-  oflag = O_RDONLY;
   while ((ch = getopt(argc, argv, "hlsxz")) != -1)
     switch (ch) {
     case 'h':   /* Don't follow symlinks */
-      oflag |= O_NOFOLLOW;
+      hflag = 1;
       break;
     case 'l':   /* print all differences */
       lflag = 1;
@@ -102,49 +101,54 @@ main(int argc, char *argv[])
   return compare(argc, argv);
 }
 
-static struct finfo*
-cmp_open(char const *path, char const *skip)
+#define CMP_S_ISLNK(fi) S_ISLNK(fi->st->st_mode)
+#define CMP_S_ISREG(fi) S_ISREG(fi->st->st_mode)
+
+static int
+cmp_stat(struct finfo *fi, int follow_symlinks)
 {
-  struct finfo *fi;
-  struct stat *st;
-  int is_stdin;
+  return fstatat(
+    AT_FDCWD
+  , fi->path
+  , fi->st
+  , follow_symlinks ? 0 : AT_SYMLINK_NOFOLLOW
+  );
+}
 
-  fi = malloc(sizeof(struct finfo));
-  if (!fi) return NULL;
-  st = malloc(sizeof(struct stat));
-  if (!st) {
-    goto cmp_open_failure;
-  }
+static struct finfo*
+cmp_open(char const *path, char const *skip, int follow_symlinks)
+{
+  struct finfo *fi = malloc(sizeof(struct finfo));
+  int is_stdin = !strcmp(path, "-");
 
-  is_stdin = !strcmp(path, "-");
+  if (!fi)
+    return NULL;
+
   fi->path = is_stdin ? "stdin" : path;
   fi->skip = strtol(skip, NULL, 0);
-  fi->fd = is_stdin ? 0 : open(fi->path, oflag);
+  fi->error = 0;
+  fi->fd = -1;
 
-  if (fi->fd > -1) {
-    if (fstat(fi->fd, st)) {
+  fi->st = malloc(sizeof(struct stat));
+  if (!fi->st)
+    goto cmp_open_failure;
+
+  if (is_stdin) {
+    fi->fd = 0;
+    if (fstat(fi->fd, fi->st))
       goto cmp_open_failure;
-    }
   } else {
-    if (!(oflag & O_NOFOLLOW)) {
+    if (cmp_stat(fi, follow_symlinks))
       goto cmp_open_failure;
-    }
-    if (errno != CMP_O_NOFOLLOW_ERRNO) {
+    if (!CMP_S_ISLNK(fi) && -1 == (fi->fd = open(fi->path, O_RDONLY)))
       goto cmp_open_failure;
-    }
-    if (lstat(fi->path, st)) {
-      goto cmp_open_failure;
-    }
   }
 
-  fi->error = 0;
-  fi->st = st;
   return fi;
 
 cmp_open_failure:
 
   fi->error = errno;
-  fi->st = NULL;
   return fi;
 }
 
@@ -160,9 +164,6 @@ cmp_close(struct finfo *fi)
   return rv;
 }
 
-#define CMP_S_ISLNK(fi) S_ISLNK(fi->st->st_mode)
-#define CMP_S_ISREG(fi) S_ISREG(fi->st->st_mode)
-
 static int
 compare(int argc, char *argv[])
 {
@@ -170,11 +171,11 @@ compare(int argc, char *argv[])
   int i;
 
   for (i = 0; i < 2; ++i) {
-    fi = fs[i] = cmp_open(argv[i], argc > (i+2) ? argv[i+2] : "0");
+    fi = fs[i] = cmp_open(argv[i], argc > (i+2) ? argv[i+2] : "0", !hflag);
 
     if (!fi)
       err(ERR_EXIT, "%s", argv[i]);
-    if (!fi->st) {
+    if (fi->error) {
       if (sflag)
         return ERR_EXIT;
       else
