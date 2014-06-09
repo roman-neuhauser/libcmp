@@ -57,33 +57,31 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/cmp.c 216370 2010-12-11 08:32:16Z
 
 #include "extern.h"
 
-int hflag, lflag, sflag, xflag, zflag;
-
 static int usage(void);
-static int compare(int, char**);
+static int compare(int, char**, int);
 
 int
 main(int argc, char *argv[])
 {
-  int ch;
+  int opts, ch;
   while ((ch = getopt(argc, argv, "hlsxz")) != -1)
     switch (ch) {
     case 'h':   /* Don't follow symlinks */
-      hflag = 1;
+      opts |= CMP_NOFOLLOW;
       break;
     case 'l':   /* print all differences */
-      lflag = 1;
+      opts |= CMP_ALLDIFFS;
       break;
     case 's':   /* silent run */
-      sflag = 1;
-      zflag = 1;
+      opts |= CMP_SILENT;
+      opts |= CMP_SIZEFIRST;
       break;
     case 'x':   /* hex output */
-      lflag = 1;
-      xflag = 1;
+      opts |= CMP_ALLDIFFS;
+      opts |= CMP_ALLHEXES;
       break;
     case 'z':   /* compare size first */
-      zflag = 1;
+      opts |= CMP_SIZEFIRST;
       break;
     case '?':
     default:
@@ -92,13 +90,13 @@ main(int argc, char *argv[])
   argv += optind;
   argc -= optind;
 
-  if (lflag && sflag)
+  if ((opts & CMP_ALLDIFFS) && (opts & CMP_SILENT))
     errx(ERR_EXIT, "specifying -s with -l or -x is not permitted");
 
   if (argc < 2 || argc > 4)
     return usage();
 
-  return compare(argc, argv);
+  return compare(argc, argv, opts);
 }
 
 #define CMP_S_ISLNK(fi) S_ISLNK(fi->st->st_mode)
@@ -165,18 +163,18 @@ cmp_close(struct finfo *fi)
 }
 
 static int
-compare(int argc, char *argv[])
+compare(int argc, char *argv[], int opts)
 {
   struct finfo *fi, *f0, *f1, *fs[2] = { NULL, NULL };
   int i;
 
   for (i = 0; i < 2; ++i) {
-    fi = fs[i] = cmp_open(argv[i], argc > (i+2) ? argv[i+2] : "0", !hflag);
+    fi = fs[i] = cmp_open(argv[i], argc > (i+2) ? argv[i+2] : "0", !(opts & CMP_NOFOLLOW));
 
     if (!fi)
       err(ERR_EXIT, "%s", argv[i]);
     if (fi->error) {
-      if (sflag)
+      if (opts & CMP_SILENT)
         return ERR_EXIT;
       else
         err(ERR_EXIT, "%s", fi->path);
@@ -190,7 +188,7 @@ compare(int argc, char *argv[])
 
   for (i = 0; i < 2; ++i) {
     if (CMP_S_ISLNK(fs[i^0]) && !CMP_S_ISLNK(fs[i^1])) {
-      if (sflag)
+      if (opts & CMP_SILENT)
         return ERR_EXIT;
       else
         errx(ERR_EXIT, "%s: Not a symbolic link", fs[i^1]->path);
@@ -198,11 +196,11 @@ compare(int argc, char *argv[])
   }
 
   if (CMP_S_ISLNK(f0) && CMP_S_ISLNK(f1))
-    return c_link(f0, f1);
+    return c_link(f0, f1, opts);
   if (!f0->fd || !f1->fd || !CMP_S_ISREG(f0) || !CMP_S_ISREG(f1))
-    return c_special(f0, f1);
+    return c_special(f0, f1, opts);
   else
-    return c_regular(f0, f1);
+    return c_regular(f0, f1, opts);
 }
 
 static int

@@ -39,7 +39,7 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/link.c 149388 2005-08-23 13:13:13
 #include "extern.h"
 
 int
-c_link(struct finfo *f0, struct finfo *f1)
+c_link(struct finfo *f0, struct finfo *f1, int opts)
 {
   char buf1[PATH_MAX], *p1;
   char buf2[PATH_MAX], *p2;
@@ -53,14 +53,14 @@ c_link(struct finfo *f0, struct finfo *f1)
   off_t skip2 = f1->skip;
 
   if ((len1 = readlink(file1, buf1, sizeof(buf1) - 1)) < 0) {
-    if (!sflag)
+    if (!(opts & CMP_SILENT))
       err(ERR_EXIT, "%s", file1);
     else
       return ERR_EXIT;
   }
 
   if ((len2 = readlink(file2, buf2, sizeof(buf2) - 1)) < 0) {
-    if (!sflag)
+    if (!(opts & CMP_SILENT))
       err(ERR_EXIT, "%s", file2);
     else
       return ERR_EXIT;
@@ -78,21 +78,21 @@ c_link(struct finfo *f0, struct finfo *f1)
   byte = 1;
   for (p1 = buf1 + skip1, p2 = buf2 + skip2; *p1 && *p2; p1++, p2++) {
     if ((ch = *p1) != *p2) {
-      if (xflag) {
+      if (opts & CMP_ALLHEXES) {
         dfound = 1;
         (void)printf("%08llx %02x %02x\n",
             (long long)byte - 1, ch, *p2);
-      } else if (lflag) {
+      } else if (opts & CMP_ALLDIFFS) {
         dfound = 1;
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        return diffmsg(file1, file2, byte, 1);
+        return diffmsg(file1, file2, byte, 1, opts);
     }
     byte++;
   }
 
   if (*p1 || *p2)
-    return eofmsg (*p1 ? file2 : file1);
+    return eofmsg (*p1 ? file2 : file1, opts);
   return dfound ? DIFF_EXIT : OK_EXIT;
 }

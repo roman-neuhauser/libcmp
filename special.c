@@ -47,7 +47,7 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/special.c 223376 2011-06-21 20:44
 #include "extern.h"
 
 int
-c_special(struct finfo *f0, struct finfo *f1)
+c_special(struct finfo *f0, struct finfo *f1, int opts)
 {
   int ch1, ch2;
   off_t byte, line;
@@ -80,16 +80,16 @@ c_special(struct finfo *f0, struct finfo *f1)
     if (ch1 == EOF || ch2 == EOF)
       break;
     if (ch1 != ch2) {
-      if (xflag) {
+      if (opts & CMP_ALLHEXES) {
         dfound = 1;
         (void)printf("%08llx %02x %02x\n",
             (long long)byte - 1, ch1, ch2);
-      } else if (lflag) {
+      } else if (opts & CMP_ALLDIFFS) {
         dfound = 1;
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch1, ch2);
       } else {
-        return diffmsg(file1, file2, byte, line);
+        return diffmsg(file1, file2, byte, line, opts);
       }
     }
     if (ch1 == '\n')
@@ -103,10 +103,10 @@ eof:
     err(ERR_EXIT, "%s", file2);
   if (feof(fp1)) {
     if (!feof(fp2))
-      return eofmsg(file1);
+      return eofmsg(file1, opts);
   } else
     if (feof(fp2))
-      return eofmsg(file2);
+      return eofmsg(file2, opts);
   if (dfound)
     return DIFF_EXIT;
   return OK_EXIT;

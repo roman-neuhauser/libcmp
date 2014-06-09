@@ -60,7 +60,7 @@ static void segv_handler(int);
 #define CMP_TAILLEN(fi) ((fi)->st->st_size - (fi)->skip)
 
 int
-c_regular(struct finfo *f0, struct finfo *f1)
+c_regular(struct finfo *f0, struct finfo *f1, int opts)
 {
   u_char ch, *p1, *p2, *m1, *m2, *e1, *e2;
   off_t byte, length, line;
@@ -78,21 +78,21 @@ c_regular(struct finfo *f0, struct finfo *f1)
   off_t len1 = f0->st->st_size;
   off_t len2 = f1->st->st_size;
 
-  if (zflag && CMP_TAILLEN(f0) != CMP_TAILLEN(f1)) {
-    if (!sflag)
+  if ((opts & CMP_SIZEFIRST) && CMP_TAILLEN(f0) != CMP_TAILLEN(f1)) {
+    if (!(opts & CMP_SILENT))
       (void) printf("%s %s differ: size\n",
           f0->path, f1->path);
     return DIFF_EXIT;
   }
 
   if (skip1 > len1)
-    return eofmsg(file1);
+    return eofmsg(file1, opts);
   len1 -= skip1;
   if (skip2 > len2)
-    return eofmsg(file2);
+    return eofmsg(file2, opts);
   len2 -= skip2;
 
-  if (sflag && len1 != len2)
+  if ((opts & CMP_SILENT) && len1 != len2)
     return DIFF_EXIT;
 
   sigemptyset(&act.sa_mask);
@@ -109,12 +109,12 @@ c_regular(struct finfo *f0, struct finfo *f1)
   length = MIN(len1, len2);
 
   if ((m1 = remmap(NULL, fd1, off1)) == NULL) {
-    return c_special(f0, f1);
+    return c_special(f0, f1, opts);
   }
 
   if ((m2 = remmap(NULL, fd2, off2)) == NULL) {
     munmap(m1, MMAP_CHUNK);
-    return c_special(f0, f1);
+    return c_special(f0, f1, opts);
   }
 
   dfound = 0;
@@ -125,16 +125,16 @@ c_regular(struct finfo *f0, struct finfo *f1)
 
   for (byte = line = 1; length--; ++byte) {
     if ((ch = *p1) != *p2) {
-      if (xflag) {
+      if (opts & CMP_ALLHEXES) {
         dfound = 1;
         (void)printf("%08llx %02x %02x\n",
             (long long)byte - 1, ch, *p2);
-      } else if (lflag) {
+      } else if (opts & CMP_ALLDIFFS) {
         dfound = 1;
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        return diffmsg(file1, file2, byte, line);
+        return diffmsg(file1, file2, byte, line, opts);
     }
     if (ch == '\n')
       ++line;
@@ -162,7 +162,7 @@ c_regular(struct finfo *f0, struct finfo *f1)
     err(ERR_EXIT, "sigaction()");
 
   if (len1 != len2)
-    return eofmsg (len1 > len2 ? file2 : file1);
+    return eofmsg (len1 > len2 ? file2 : file1, opts);
   if (dfound)
     return DIFF_EXIT;
   return OK_EXIT;

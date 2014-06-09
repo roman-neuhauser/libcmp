@@ -36,6 +36,12 @@
 #define DIFF_EXIT	1
 #define ERR_EXIT	2	/* error exit code */
 
+#define CMP_NOFOLLOW    (1 << 0)
+#define CMP_SILENT      (1 << 1)
+#define CMP_SIZEFIRST   (1 << 2)
+#define CMP_ALLDIFFS    (1 << 3)
+#define CMP_ALLHEXES    (1 << 4)
+
 struct finfo
 {
   char const *path;
@@ -45,10 +51,8 @@ struct finfo
   off_t skip;
 };
 
-int	c_link(struct finfo *, struct finfo *);
-int	c_regular(struct finfo *, struct finfo *);
-int	c_special(struct finfo *, struct finfo *);
-int	diffmsg(const char *, const char *, off_t, off_t);
-int	eofmsg(const char *);
-
-extern int lflag, sflag, xflag, zflag;
+int	c_link(struct finfo *, struct finfo *, int);
+int	c_regular(struct finfo *, struct finfo *, int);
+int	c_special(struct finfo *, struct finfo *, int);
+int	diffmsg(const char *, const char *, off_t, off_t, int);
+int	eofmsg(const char *, int);

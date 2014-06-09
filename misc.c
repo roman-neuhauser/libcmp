@@ -47,17 +47,17 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/misc.c 216370 2010-12-11 08:32:16
 #include "extern.h"
 
 int
-eofmsg(const char *file)
+eofmsg(const char *file, int opts)
 {
-  if (!sflag)
+  if (!(opts & CMP_SILENT))
     warnx("EOF on %s", file);
   return DIFF_EXIT;
 }
 
 int
-diffmsg(const char *file1, const char *file2, off_t byte, off_t line)
+diffmsg(const char *file1, const char *file2, off_t byte, off_t line, int opts)
 {
-  if (!sflag)
+  if (!(opts & CMP_SILENT))
     (void)printf("%s %s differ: char %lld, line %lld\n",
         file1, file2, (long long)byte, (long long)line);
   return DIFF_EXIT;
