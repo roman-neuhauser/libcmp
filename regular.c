@@ -55,8 +55,6 @@ static u_char *remmap(u_char *, int, off_t);
 static void segv_handler(int);
 #define MMAP_CHUNK (8*1024*1024)
 
-#define ROUNDPAGE(i) ((i) & ~pagemask)
-
 #define CMP_TAILLEN(fi) ((fi)->st->st_size - (fi)->skip)
 
 int
@@ -66,7 +64,6 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
   off_t byte, length, line;
   int dfound;
   off_t pagemask, off1, off2;
-  size_t pagesize;
   struct sigaction act, oact;
 
   off_t len1 = f0->st->st_size;
@@ -95,10 +92,10 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
   if (sigaction(SIGSEGV, &act, &oact))
     err(ERR_EXIT, "sigaction()");
 
-  pagesize = getpagesize();
-  pagemask = (off_t)pagesize - 1;
-  off1 = ROUNDPAGE(f0->skip);
-  off2 = ROUNDPAGE(f1->skip);
+  /* floor skips to pagesize multiples */
+  pagemask = (off_t)getpagesize() - 1;
+  off1 = f0->skip & ~pagemask;
+  off2 = f1->skip & ~pagemask;
 
   length = MIN(len1, len2);
 
