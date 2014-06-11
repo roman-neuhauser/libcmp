@@ -87,7 +87,7 @@ c_link(struct finfo *f0, struct finfo *f1, int opts)
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        return diffmsg(file1, file2, byte, 1, opts);
+        return diffmsg(f0, f1, byte, 1, opts);
     }
     byte++;
   }

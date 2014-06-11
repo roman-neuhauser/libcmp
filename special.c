@@ -89,7 +89,7 @@ c_special(struct finfo *f0, struct finfo *f1, int opts)
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch1, ch2);
       } else {
-        return diffmsg(file1, file2, byte, line, opts);
+        return diffmsg(f0, f1, byte, line, opts);
       }
     }
     if (ch1 == '\n')

@@ -55,10 +55,10 @@ eofmsg(struct finfo *fi, int opts)
 }
 
 int
-diffmsg(const char *file1, const char *file2, off_t byte, off_t line, int opts)
+diffmsg(struct finfo *f0, struct finfo *f1, off_t byte, off_t line, int opts)
 {
   if (!(opts & CMP_SILENT))
     (void)printf("%s %s differ: char %lld, line %lld\n",
-        file1, file2, (long long)byte, (long long)line);
+        f0->path, f1->path, (long long)byte, (long long)line);
   return DIFF_EXIT;
 }

@@ -71,8 +71,6 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
 
   int fd1 = f0->fd;
   int fd2 = f1->fd;
-  const char *file1 = f0->path;
-  const char *file2 = f1->path;
   off_t skip1 = f0->skip;
   off_t skip2 = f1->skip;
   off_t len1 = f0->st->st_size;
@@ -134,7 +132,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
         (void)printf("%6lld %3o %3o\n",
             (long long)byte, ch, *p2);
       } else
-        return diffmsg(file1, file2, byte, line, opts);
+        return diffmsg(f0, f1, byte, line, opts);
     }
     if (ch == '\n')
       ++line;
@@ -142,7 +140,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
       off1 += MMAP_CHUNK;
       if ((p1 = m1 = remmap(m1, fd1, off1)) == NULL) {
         munmap(m2, MMAP_CHUNK);
-        err(ERR_EXIT, "remmap %s", file1);
+        err(ERR_EXIT, "remmap %s", f0->path);
       }
       e1 = m1 + MMAP_CHUNK;
     }
@@ -150,7 +148,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
       off2 += MMAP_CHUNK;
       if ((p2 = m2 = remmap(m2, fd2, off2)) == NULL) {
         munmap(m1, MMAP_CHUNK);
-        err(ERR_EXIT, "remmap %s", file2);
+        err(ERR_EXIT, "remmap %s", f1->path);
       }
       e2 = m2 + MMAP_CHUNK;
     }

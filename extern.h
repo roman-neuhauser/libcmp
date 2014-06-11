@@ -54,5 +54,5 @@ struct finfo
 int	c_link(struct finfo *, struct finfo *, int);
 int	c_regular(struct finfo *, struct finfo *, int);
 int	c_special(struct finfo *, struct finfo *, int);
-int	diffmsg(const char *, const char *, off_t, off_t, int);
+int	diffmsg(struct finfo *, struct finfo *, off_t, off_t, int);
 int	eofmsg(struct finfo *, int);
