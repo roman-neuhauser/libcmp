@@ -41,40 +41,42 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/link.c 149388 2005-08-23 13:13:13
 int
 c_link(struct finfo *f0, struct finfo *f1, int opts)
 {
+  struct finfo *fs[2];
+  off_t skips[2];
+  char *bufs[2];
   char buf1[PATH_MAX], *p1;
   char buf2[PATH_MAX], *p2;
-  int dfound, len1, len2;
+  ssize_t len;
   off_t byte;
+  int dfound;
   u_char ch;
+  int i;
 
-  off_t skip1 = f0->skip;
-  off_t skip2 = f1->skip;
+  fs[0] = f0;
+  fs[1] = f1;
+  bufs[0] = buf1;
+  bufs[1] = buf2;
+  skips[0] = f0->skip;
+  skips[1] = f1->skip;
 
-  if ((len1 = readlink(f0->path, buf1, sizeof(buf1) - 1)) < 0) {
-    if (!(opts & CMP_SILENT))
-      err(ERR_EXIT, "%s", f0->path);
-    else
-      return ERR_EXIT;
+  for (i = 0; i < 2; ++i) {
+    if ((len = readlink(fs[i]->path, bufs[i], PATH_MAX - 1)) < 0) {
+      if (!(opts & CMP_SILENT))
+        err(ERR_EXIT, "%s", fs[i]->path);
+      else
+        return ERR_EXIT;
+    }
+
+    if (skips[i] > len)
+      skips[i] = len;
+    bufs[i][len] = '\0';
   }
-
-  if ((len2 = readlink(f1->path, buf2, sizeof(buf2) - 1)) < 0) {
-    if (!(opts & CMP_SILENT))
-      err(ERR_EXIT, "%s", f1->path);
-    else
-      return ERR_EXIT;
-  }
-
-  if (skip1 > len1)
-    skip1 = len1;
-  buf1[len1] = '\0';
-
-  if (skip2 > len2)
-    skip2 = len2;
-  buf2[len2] = '\0';
 
   dfound = 0;
   byte = 1;
-  for (p1 = buf1 + skip1, p2 = buf2 + skip2; *p1 && *p2; p1++, p2++) {
+  p1 = bufs[0] + skips[0];
+  p2 = bufs[1] + skips[1];
+  for (; *p1 && *p2; p1++, p2++) {
     if ((ch = *p1) != *p2) {
       if (opts & CMP_ALLHEXES) {
         dfound = 1;
