@@ -49,3 +49,22 @@ funny in a sad way, though it's understandable given the code structure.
 .. _`/base/release/10.0.0/usr.bin/cmp`:
       https://svnweb.freebsd.org/base/release/10.0.0/usr.bin/cmp/
 .. _`Zsh`: http://www.zsh.org/
+
+
+Hacking
+=======
+
+Requires GNU make plus gcc or clang to build, and `cram`_ (implies python)
+to run the tests.
+
+::
+
+  pip install cram
+  git clone https://github.com/roman-neuhauser/libcmp.git
+  cd libcmp
+  make all check
+
+Append ``CC=clang`` to the last line to build with clang.
+Change ``make`` to ``gmake`` if you're on a BSD machine.
+
+.. _`cram`: https://pypi.python.org/pypi/cram
