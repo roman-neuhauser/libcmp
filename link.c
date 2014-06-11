@@ -47,21 +47,19 @@ c_link(struct finfo *f0, struct finfo *f1, int opts)
   off_t byte;
   u_char ch;
 
-  const char *file1 = f0->path;
-  const char *file2 = f1->path;
   off_t skip1 = f0->skip;
   off_t skip2 = f1->skip;
 
-  if ((len1 = readlink(file1, buf1, sizeof(buf1) - 1)) < 0) {
+  if ((len1 = readlink(f0->path, buf1, sizeof(buf1) - 1)) < 0) {
     if (!(opts & CMP_SILENT))
-      err(ERR_EXIT, "%s", file1);
+      err(ERR_EXIT, "%s", f0->path);
     else
       return ERR_EXIT;
   }
 
-  if ((len2 = readlink(file2, buf2, sizeof(buf2) - 1)) < 0) {
+  if ((len2 = readlink(f1->path, buf2, sizeof(buf2) - 1)) < 0) {
     if (!(opts & CMP_SILENT))
-      err(ERR_EXIT, "%s", file2);
+      err(ERR_EXIT, "%s", f1->path);
     else
       return ERR_EXIT;
   }

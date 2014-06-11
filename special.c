@@ -54,17 +54,13 @@ c_special(struct finfo *f0, struct finfo *f1, int opts)
   FILE *fp1, *fp2;
   int dfound;
 
-  const char *file1 = f0->path;
-  const char *file2 = f1->path;
-  int fd1 = f0->fd;
-  int fd2 = f1->fd;
   off_t skip1 = f0->skip;
   off_t skip2 = f1->skip;
 
-  if ((fp1 = fdopen(fd1, "r")) == NULL)
-    err(ERR_EXIT, "%s", file1);
-  if ((fp2 = fdopen(fd2, "r")) == NULL)
-    err(ERR_EXIT, "%s", file2);
+  if ((fp1 = fdopen(f0->fd, "r")) == NULL)
+    err(ERR_EXIT, "%s", f0->path);
+  if ((fp2 = fdopen(f1->fd, "r")) == NULL)
+    err(ERR_EXIT, "%s", f1->path);
 
   dfound = 0;
   while (skip1--)
@@ -98,9 +94,9 @@ c_special(struct finfo *f0, struct finfo *f1, int opts)
 
 eof:
   if (ferror(fp1))
-    err(ERR_EXIT, "%s", file1);
+    err(ERR_EXIT, "%s", f0->path);
   if (ferror(fp2))
-    err(ERR_EXIT, "%s", file2);
+    err(ERR_EXIT, "%s", f1->path);
   if (feof(fp1)) {
     if (!feof(fp2))
       return eofmsg(f0, opts);

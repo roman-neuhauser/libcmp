@@ -69,10 +69,6 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
   size_t pagesize;
   struct sigaction act, oact;
 
-  int fd1 = f0->fd;
-  int fd2 = f1->fd;
-  off_t skip1 = f0->skip;
-  off_t skip2 = f1->skip;
   off_t len1 = f0->st->st_size;
   off_t len2 = f1->st->st_size;
 
@@ -83,12 +79,12 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
     return DIFF_EXIT;
   }
 
-  if (skip1 > len1)
+  if (f0->skip > len1)
     return eofmsg(f0, opts);
-  len1 -= skip1;
-  if (skip2 > len2)
+  len1 -= f0->skip;
+  if (f1->skip > len2)
     return eofmsg(f1, opts);
-  len2 -= skip2;
+  len2 -= f1->skip;
 
   if ((opts & CMP_SILENT) && len1 != len2)
     return DIFF_EXIT;
@@ -101,16 +97,16 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
 
   pagesize = getpagesize();
   pagemask = (off_t)pagesize - 1;
-  off1 = ROUNDPAGE(skip1);
-  off2 = ROUNDPAGE(skip2);
+  off1 = ROUNDPAGE(f0->skip);
+  off2 = ROUNDPAGE(f1->skip);
 
   length = MIN(len1, len2);
 
-  if ((m1 = remmap(NULL, fd1, off1)) == NULL) {
+  if ((m1 = remmap(NULL, f0->fd, off1)) == NULL) {
     return c_special(f0, f1, opts);
   }
 
-  if ((m2 = remmap(NULL, fd2, off2)) == NULL) {
+  if ((m2 = remmap(NULL, f1->fd, off2)) == NULL) {
     munmap(m1, MMAP_CHUNK);
     return c_special(f0, f1, opts);
   }
@@ -118,8 +114,8 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
   dfound = 0;
   e1 = m1 + MMAP_CHUNK;
   e2 = m2 + MMAP_CHUNK;
-  p1 = m1 + (skip1 - off1);
-  p2 = m2 + (skip2 - off2);
+  p1 = m1 + (f0->skip - off1);
+  p2 = m2 + (f1->skip - off2);
 
   for (byte = line = 1; length--; ++byte) {
     if ((ch = *p1) != *p2) {
@@ -138,7 +134,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
       ++line;
     if (++p1 == e1) {
       off1 += MMAP_CHUNK;
-      if ((p1 = m1 = remmap(m1, fd1, off1)) == NULL) {
+      if ((p1 = m1 = remmap(m1, f0->fd, off1)) == NULL) {
         munmap(m2, MMAP_CHUNK);
         err(ERR_EXIT, "remmap %s", f0->path);
       }
@@ -146,7 +142,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
     }
     if (++p2 == e2) {
       off2 += MMAP_CHUNK;
-      if ((p2 = m2 = remmap(m2, fd2, off2)) == NULL) {
+      if ((p2 = m2 = remmap(m2, f1->fd, off2)) == NULL) {
         munmap(m1, MMAP_CHUNK);
         err(ERR_EXIT, "remmap %s", f1->path);
       }
