@@ -47,10 +47,10 @@ __FBSDID("$FreeBSD: release/10.0.0/usr.bin/cmp/misc.c 216370 2010-12-11 08:32:16
 #include "extern.h"
 
 int
-eofmsg(const char *file, int opts)
+eofmsg(struct finfo *fi, int opts)
 {
   if (!(opts & CMP_SILENT))
-    warnx("EOF on %s", file);
+    warnx("EOF on %s", fi->path);
   return DIFF_EXIT;
 }
 

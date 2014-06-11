@@ -86,10 +86,10 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
   }
 
   if (skip1 > len1)
-    return eofmsg(file1, opts);
+    return eofmsg(f0, opts);
   len1 -= skip1;
   if (skip2 > len2)
-    return eofmsg(file2, opts);
+    return eofmsg(f1, opts);
   len2 -= skip2;
 
   if ((opts & CMP_SILENT) && len1 != len2)
@@ -162,7 +162,7 @@ c_regular(struct finfo *f0, struct finfo *f1, int opts)
     err(ERR_EXIT, "sigaction()");
 
   if (len1 != len2)
-    return eofmsg (len1 > len2 ? file2 : file1, opts);
+    return eofmsg (len1 > len2 ? f1 : f0, opts);
   if (dfound)
     return DIFF_EXIT;
   return OK_EXIT;

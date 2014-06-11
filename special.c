@@ -103,10 +103,10 @@ eof:
     err(ERR_EXIT, "%s", file2);
   if (feof(fp1)) {
     if (!feof(fp2))
-      return eofmsg(file1, opts);
+      return eofmsg(f0, opts);
   } else
     if (feof(fp2))
-      return eofmsg(file2, opts);
+      return eofmsg(f1, opts);
   if (dfound)
     return DIFF_EXIT;
   return OK_EXIT;
