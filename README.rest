@@ -22,9 +22,9 @@
 Introduction
 ============
 
-`libcmp` will be a fast, thread-safe, reasonably portable, `BSD`_-
-`licensed`_ library for file comparisons, suitable as a backend for all
-functionality of *cmp(1)* in `FreeBSD`_ 10.0 and `GNU diffutils 3.3`_
+`libcmp` will be a reasonably portable, fast, thread-safe,
+`BSD`_-`licensed`_ library for file comparisons, suitable as a backend for
+all functionality of *cmp(1)* in `FreeBSD`_ 10.0 and `GNU diffutils 3.3`_
 or later.  `/base/release/10.0.0/usr.bin/cmp`_ from FreeBSD was used as
 the starting point.
 
