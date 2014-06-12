@@ -36,7 +36,7 @@ html: README.html
 	$(GZIPCMD) -n < $< > $@
 
 %.html: %.rest
-	$(RST2HTML) $< $@
+	$(RST2HTML) --strict $< $@
 
 cmp: cmp.o link.o misc.o regular.o special.o
 $(objects): extern.h
