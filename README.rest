@@ -51,6 +51,17 @@ funny in a sad way, though it's understandable given the code structure.
 .. _`Zsh`: http://www.zsh.org/
 
 
+License
+=======
+
+Source files comprising the FreeBSD `cmp` include the "revised" (3-clause)
+BSD license.  An exception is link.c with the "FreeBSD" (2-clause) license,
+which is AFAICT (IANAL) indistinguishable from the MIT and ISC licenses.
+New code is covered by the 2-clause license; the no-endorsement clause will
+be removed from individual files when they change enough for me to fairly
+claim ownership.
+
+
 Hacking
 =======
 
