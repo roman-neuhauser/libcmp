@@ -2,5 +2,5 @@ export PATH=${TESTDIR%/*}:$PATH
 
 pmp()
 {
-   python $TESTDIR/cmp.py "$@"
+   python3 $TESTDIR/cmp.py "$@"
 }
